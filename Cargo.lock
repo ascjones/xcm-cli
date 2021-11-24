@@ -2957,6 +2957,7 @@ dependencies = [
  "idna",
  "matches",
  "percent-encoding",
+ "serde",
 ]
 
 [[package]]
@@ -3125,10 +3126,12 @@ version = "0.1.0"
 dependencies = [
  "color-eyre",
  "parity-scale-codec",
+ "sp-core",
  "sp-keyring",
  "structopt",
  "subxt",
  "tokio",
+ "url",
 ]
 
 [[package]]

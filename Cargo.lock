@@ -2957,7 +2957,6 @@ dependencies = [
  "idna",
  "matches",
  "percent-encoding",
- "serde",
 ]
 
 [[package]]
@@ -3131,7 +3130,6 @@ dependencies = [
  "structopt",
  "subxt",
  "tokio",
- "url",
 ]
 
 [[package]]

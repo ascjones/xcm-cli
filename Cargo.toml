@@ -13,4 +13,3 @@ sp-keyring = { package = "sp-keyring", git = "https://github.com/paritytech/subs
 structopt = "0.3.25"
 subxt = { git = "https://github.com/paritytech/subxt", branch = "master" }
 tokio = { version = "1.14.0", features = ["macros"] }
-url = { version = "2.2.2", features = ["serde"] }

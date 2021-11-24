@@ -69,10 +69,9 @@ pub(crate) struct ExtrinsicOpts {
     #[structopt(
         name = "url",
         long,
-        parse(try_from_str),
         default_value = "ws://localhost:9944"
     )]
-    url: url::Url,
+    url: String,
     /// Secret key URI for the account deploying the contract.
     #[structopt(name = "suri", long, short)]
     suri: String,
@@ -98,7 +97,7 @@ async fn main() -> color_eyre::Result<()> {
     let signer = PairSigner::new(extrinsic_opts.signer()?);
 
     let api = ClientBuilder::new()
-        .set_url("ws://localhost:9944")
+        .set_url(extrinsic_opts.url)
         .build()
         .await
         .context("Error connecting to substrate node")?

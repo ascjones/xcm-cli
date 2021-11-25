@@ -89,6 +89,7 @@ impl ExtrinsicOpts {
 
 #[tokio::main]
 async fn main() -> color_eyre::Result<()> {
+    env_logger::init();
     color_eyre::install()?;
 
     let opts = Opts::from_args();

@@ -1,39 +1,22 @@
 #[subxt::subxt(runtime_metadata_path = "relay-chain.scale")]
 pub mod relay_chain {}
 
-use relay_chain::{
-    runtime_types::xcm::{
-        VersionedMultiAssets,
-        VersionedMultiLocation,
-        v0::{
-            junction::{
-                Junction,
-                NetworkId,
-            },
-            multi_location::MultiLocation as V0MultiLocation,
-        },
-        v1::{
-            multiasset::{
-                AssetId,
-                MultiAsset,
-                MultiAssets,
-                Fungibility,
-            },
-            multilocation::{
-                Junctions,
-                MultiLocation as V1MultiLocation
-            },
-        }
-    }
+use relay_chain::runtime_types::xcm::{
+    v0::{
+        junction::{Junction, NetworkId},
+        multi_location::MultiLocation as V0MultiLocation,
+    },
+    v1::{
+        multiasset::{AssetId, Fungibility, MultiAsset, MultiAssets},
+        multilocation::{Junctions, MultiLocation as V1MultiLocation},
+    },
+    VersionedMultiAssets, VersionedMultiLocation,
 };
 
-use color_eyre::eyre::{
-    self,
-    WrapErr
-};
+use color_eyre::eyre::{self, WrapErr};
 use sp_core::{crypto::Pair, sr25519};
-use subxt::{Config, ClientBuilder, DefaultConfig, DefaultExtra, PairSigner};
 use structopt::StructOpt;
+use subxt::{ClientBuilder, Config, DefaultConfig, DefaultExtra, PairSigner};
 
 type SignedExtra = DefaultExtra<DefaultConfig>;
 
@@ -60,18 +43,14 @@ enum Command {
         amount: u128,
         #[structopt(flatten)]
         extrinsic_opts: ExtrinsicOpts,
-    }
+    },
 }
 
 /// Arguments required for creating and sending an extrinsic to a substrate node
 #[derive(Clone, Debug, StructOpt)]
 pub(crate) struct ExtrinsicOpts {
     /// Websockets url of a substrate node
-    #[structopt(
-        name = "url",
-        long,
-        default_value = "ws://localhost:9944"
-    )]
+    #[structopt(name = "url", long, default_value = "ws://localhost:9944")]
     url: String,
     /// Secret key URI for the account deploying the contract.
     #[structopt(name = "suri", long, short)]
@@ -95,7 +74,12 @@ async fn main() -> color_eyre::Result<()> {
 
     let opts = Opts::from_args();
 
-    let Command::TeleportAsset { parachain_id, dest_account, amount, extrinsic_opts } = opts.command;
+    let Command::TeleportAsset {
+        parachain_id,
+        dest_account,
+        amount,
+        extrinsic_opts,
+    } = opts.command;
     let signer = PairSigner::new(extrinsic_opts.signer()?);
 
     let api = ClientBuilder::new()
@@ -105,22 +89,18 @@ async fn main() -> color_eyre::Result<()> {
         .context("Error connecting to substrate node")?
         .to_runtime_api::<relay_chain::RuntimeApi<DefaultConfig, SignedExtra>>();
 
-    let dest = VersionedMultiLocation::V0(
-        V0MultiLocation::X1(Junction::Parachain(parachain_id))
-    );
-    let beneficiary = VersionedMultiLocation::V0(
-        V0MultiLocation::X1(Junction::AccountId32 { network: NetworkId::Any, id: dest_account.into() })
-    );
-    let assets = VersionedMultiAssets::V1(
-        MultiAssets(
-            vec![
-                MultiAsset {
-                    id: AssetId::Concrete(V1MultiLocation { parents: 0, interior: Junctions::Here }),
-                    fun: Fungibility::Fungible(amount)
-                }
-            ]
-        )
-    );
+    let dest = VersionedMultiLocation::V0(V0MultiLocation::X1(Junction::Parachain(parachain_id)));
+    let beneficiary = VersionedMultiLocation::V0(V0MultiLocation::X1(Junction::AccountId32 {
+        network: NetworkId::Any,
+        id: dest_account.into(),
+    }));
+    let assets = VersionedMultiAssets::V1(MultiAssets(vec![MultiAsset {
+        id: AssetId::Concrete(V1MultiLocation {
+            parents: 0,
+            interior: Junctions::Here,
+        }),
+        fun: Fungibility::Fungible(amount),
+    }]));
     let fee_asset_item = 0;
 
     let events = api

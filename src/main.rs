@@ -2,7 +2,6 @@
 pub mod relay_chain {}
 
 use relay_chain::{
-    DefaultConfig,
     runtime_types::xcm::{
         VersionedMultiAssets,
         VersionedMultiLocation,
@@ -33,8 +32,10 @@ use color_eyre::eyre::{
     WrapErr
 };
 use sp_core::{crypto::Pair, sr25519};
-use subxt::{Config, ClientBuilder, PairSigner};
+use subxt::{Config, ClientBuilder, DefaultConfig, DefaultExtra, PairSigner};
 use structopt::StructOpt;
+
+type SignedExtra = DefaultExtra<DefaultConfig>;
 
 /// CLI for submitting XCM messages.
 #[derive(Debug, StructOpt)]
@@ -102,7 +103,7 @@ async fn main() -> color_eyre::Result<()> {
         .build()
         .await
         .context("Error connecting to substrate node")?
-        .to_runtime_api::<relay_chain::RuntimeApi<relay_chain::DefaultConfig>>();
+        .to_runtime_api::<relay_chain::RuntimeApi<DefaultConfig, SignedExtra>>();
 
     let dest = VersionedMultiLocation::V0(
         V0MultiLocation::X1(Junction::Parachain(parachain_id))
@@ -122,15 +123,17 @@ async fn main() -> color_eyre::Result<()> {
     );
     let fee_asset_item = 0;
 
-    let result = api
+    let events = api
         .tx()
         .xcm_pallet()
         .teleport_assets(dest, beneficiary, assets, fee_asset_item)
         .sign_and_submit_then_watch(&signer)
+        .await?
+        .wait_for_finalized_success()
         .await
         .context("Error submitting extrinsic")?;
 
-    for event in result.events.iter() {
+    for event in events.as_slice() {
         println!("{:?}", event)
     }
 
